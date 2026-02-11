@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 """
 Secure HTTP Server for Valentine's Invitation App
-Prevents directory listing and adds security headers
+Handles photo uploads and invitation creation
 """
 
 import http.server
 import socketserver
 import os
+import json
+import uuid
+import base64
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 PORT = 8000
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+UPLOADS_DIR = Path(DIRECTORY) / '.uploads'
+UPLOADS_DIR.mkdir(exist_ok=True)
+INVITATIONS_DIR = Path(DIRECTORY) / '.invitations'
+INVITATIONS_DIR.mkdir(exist_ok=True)
 
 class SecureHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -21,17 +30,30 @@ class SecureHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('X-Frame-Options', 'SAMEORIGIN')
         self.send_header('X-XSS-Protection', '1; mode=block')
         self.send_header('Referrer-Policy', 'no-referrer')
+        self.send_header('Access-Control-Allow-Origin', '*')
         # Allow inline styles/scripts and data: images for the floating photos
         self.send_header(
             'Content-Security-Policy',
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline'; "
             "style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data:;"
+            "img-src 'self' data: http://localhost:8000;"
         )
         super().end_headers()
     
     def do_GET(self):
+        # API: Get photo by ID
+        if self.path.startswith('/api/photo/'):
+            photo_id = self.path.split('/')[-1]
+            self.handle_get_photo(photo_id)
+            return
+        
+        # API: Get invitation by token
+        if self.path.startswith('/api/invitation/'):
+            token = self.path.split('/')[-1].split('?')[0]
+            self.handle_get_invitation(token)
+            return
+        
         # Prevent directory listing
         if self.path in ['/', '']:
             self.path = '/index.html'
@@ -42,6 +64,126 @@ class SecureHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             return
         
         super().do_GET()
+    
+    def do_POST(self):
+        # API: Upload photo
+        if self.path == '/api/upload-photo':
+            self.handle_upload_photo()
+            return
+        
+        # API: Create invitation
+        if self.path == '/api/create-invitation':
+            self.handle_create_invitation()
+            return
+        
+        self.send_error(404, "Not Found")
+    
+    def handle_upload_photo(self):
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length)
+            
+            # Parse multipart form data or base64-encoded image
+            if b'------' in body:
+                # Multipart form data
+                photo_data = self.extract_multipart_photo(body)
+            else:
+                # Raw base64 image
+                photo_data = body
+            
+            # Generate a unique photo ID
+            photo_id = str(uuid.uuid4())[:12]
+            photo_file = UPLOADS_DIR / f"{photo_id}.jpg"
+            
+            # Save the photo
+            with open(photo_file, 'wb') as f:
+                f.write(photo_data)
+            
+            # Return the photo ID
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            response = json.dumps({'photoId': photo_id})
+            self.wfile.write(response.encode('utf-8'))
+            
+        except Exception as e:
+            self.send_error(400, f"Error uploading photo: {str(e)}")
+    
+    def extract_multipart_photo(self, body):
+        """Extract photo data from multipart form data"""
+        # Find the image data between boundaries
+        parts = body.split(b'------')
+        for part in parts:
+            if b'Content-Type: image/' in part:
+                # Extract image data (after headers)
+                try:
+                    data_start = part.find(b'\r\n\r\n') + 4
+                    data_end = part.rfind(b'\r\n')
+                    return part[data_start:data_end]
+                except:
+                    pass
+        return body
+    
+    def handle_create_invitation(self):
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            
+            data = json.loads(body)
+            token = str(uuid.uuid4())[:12]
+            
+            # Save invitation metadata
+            invitation_file = INVITATIONS_DIR / f"{token}.json"
+            with open(invitation_file, 'w') as f:
+                json.dump(data, f)
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            response = json.dumps({'token': token})
+            self.wfile.write(response.encode('utf-8'))
+            
+        except Exception as e:
+            self.send_error(400, f"Error: {str(e)}")
+    
+    def handle_get_invitation(self, token):
+        invitation_file = INVITATIONS_DIR / f"{token}.json"
+        
+        if not invitation_file.exists():
+            self.send_error(404, "Invitation not found")
+            return
+        
+        try:
+            with open(invitation_file, 'r') as f:
+                data = json.load(f)
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(data).encode('utf-8'))
+            
+        except Exception as e:
+            self.send_error(500, f"Error: {str(e)}")
+    
+    def handle_get_photo(self, photo_id):
+        photo_file = UPLOADS_DIR / f"{photo_id}.jpg"
+        
+        if not photo_file.exists():
+            self.send_error(404, "Photo not found")
+            return
+        
+        try:
+            with open(photo_file, 'rb') as f:
+                photo_data = f.read()
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/jpeg')
+            self.send_header('Content-Length', str(len(photo_data)))
+            self.end_headers()
+            self.wfile.write(photo_data)
+            
+        except Exception as e:
+            self.send_error(500, f"Error: {str(e)}")
     
     def log_message(self, format, *args):
         # Suppress detailed logging to prevent path exposure in logs

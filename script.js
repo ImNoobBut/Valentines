@@ -42,6 +42,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Upload photo to server and return photo ID
+    async function uploadPhotoToServer(photoData) {
+        try {
+            const response = await fetch('/api/upload-photo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/octet-stream' },
+                body: atob(photoData.split(',')[1]) // Send just the image bytes
+            });
+            
+            if (!response.ok) throw new Error('Failed to upload photo');
+            
+            const result = await response.json();
+            return result.photoId;
+        } catch (error) {
+            throw new Error('Error uploading photo: ' + error.message);
+        }
+    }
+
     // Add question functionality
     addQuestionBtn.addEventListener('click', () => {
         const questionItem = document.createElement('div');
@@ -116,23 +134,41 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Generating...';
 
-        // Compress all photos
-        const compressedPhotos = await Promise.all(files.map(compressImage));
-
-        const params = new URLSearchParams({
-            name: partnerName,
-            photos: JSON.stringify(compressedPhotos),
-            questions: JSON.stringify(questions)
-        });
-        
-        // Full invitation URL
-        const fullLink = `${window.location.origin}${window.location.pathname.replace('index.html', '')}invite.html?${params.toString()}`;
-        
-        // Shorten with TinyURL
         try {
-            const shortLink = await shortenURL(fullLink);
-            invitationLink.value = shortLink;
-        } catch (error) {
+            // Upload photos to server
+            const photoIds = [];
+            for (const file of files) {
+                const photoData = await compressImage(file);
+                const photoId = await uploadPhotoToServer(photoData);
+                photoIds.push(photoId);
+            }
+
+            // Create invitation on server
+            const invitationData = {
+                name: partnerName,
+                photoIds: photoIds,
+                questions: questions
+            };
+            
+            const response = await fetch('/api/create-invitation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(invitationData)
+            });
+            
+            if (!response.ok) throw new Error('Failed to create invitation');
+            
+            const result = await response.json();
+            const token = result.token;
+            
+            // Create link with token
+            const fullLink = `${window.location.origin}${window.location.pathname.replace('index.html', '')}invite.html?token=${token}`;
+            
+            // Shorten with TinyURL
+            try {
+                const shortLink = await shortenURL(fullLink);
+                invitationLink.value = shortLink;
+            } catch (error) {
             console.warn('Could not shorten URL:', error);
             invitationLink.value = fullLink; // Fallback to full link
         }
