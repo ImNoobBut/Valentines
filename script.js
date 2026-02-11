@@ -129,66 +129,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Show loading message
-        const submitBtn = form.querySelector('[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Generating...';
+        // Compress all photos
+        const compressedPhotos = await Promise.all(files.map(compressImage));
 
-        try {
-            // Upload photos to server
-            const photoIds = [];
-            for (const file of files) {
-                const photoData = await compressImage(file);
-                const photoId = await uploadPhotoToServer(photoData);
-                photoIds.push(photoId);
-            }
-
-            // Create invitation on server
-            const invitationData = {
-                name: partnerName,
-                photoIds: photoIds,
-                questions: questions
-            };
-            
-            const response = await fetch('/api/create-invitation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(invitationData)
-            });
-            
-            if (!response.ok) throw new Error('Failed to create invitation');
-            
-            const result = await response.json();
-            const token = result.token;
-            
-            // Create link with token
-            const fullLink = `${window.location.origin}${window.location.pathname.replace('index.html', '')}invite.html?token=${token}`;
-            
-            // Shorten with TinyURL
-            try {
-                const shortLink = await shortenURL(fullLink);
-                invitationLink.value = shortLink;
-            } catch (error) {
-            console.warn('Could not shorten URL:', error);
-            invitationLink.value = fullLink; // Fallback to full link
-        }
-        
+        const params = new URLSearchParams({
+            name: partnerName,
+            photos: JSON.stringify(compressedPhotos),
+            questions: JSON.stringify(questions)
+        });
+        const link = `${window.location.origin}/Valentines/invite.html?${params.toString()}`;
+        invitationLink.value = link;
         linkOutput.style.display = 'block';
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Generate Invitation Link';
     });
-
-    // Shorten URL using TinyURL API
-    async function shortenURL(longURL) {
-        try {
-            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longURL)}`);
-            if (!response.ok) throw new Error('Failed to shorten URL');
-            const shortURL = await response.text();
-            return shortURL.trim();
-        } catch (error) {
-            throw error;
-        }
-    }
 
     // Copy link
     copyLinkBtn.addEventListener('click', () => {
