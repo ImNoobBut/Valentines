@@ -21,7 +21,7 @@ body {
     animation: gradientFlow 12s ease-in-out infinite;
     color: var(--dark-text);
     margin: 0;
-    padding: 20px;
+    padding: clamp(12px, 5vw, 30px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -204,7 +204,7 @@ body::after {
 
 .container {
     background: var(--white);
-    padding: 60px 50px;
+    padding: clamp(30px, 8vw, 60px) clamp(24px, 8vw, 50px);
     border-radius: 2px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
     max-width: 700px;
@@ -266,19 +266,19 @@ h1, h2, h3 {
 }
 
 h1 {
-    font-size: 48px;
+    font-size: clamp(28px, 7vw, 48px);
     line-height: 1.2;
     margin-top: 0;
 }
 
 h2 {
-    font-size: 36px;
+    font-size: clamp(24px, 5vw, 36px);
     line-height: 1.25;
     text-align: center;
 }
 
 h3 {
-    font-size: 20px;
+    font-size: clamp(16px, 4vw, 20px);
     text-transform: uppercase;
     letter-spacing: 2px;
     font-weight: 600;
@@ -286,7 +286,7 @@ h3 {
 }
 
 p {
-    font-size: 16px;
+    font-size: clamp(14px, 2vw, 16px);
     line-height: 1.8;
     color: var(--dark-text);
     margin: 0 0 24px 0;
@@ -297,7 +297,7 @@ label {
     margin-top: 32px;
     margin-bottom: 12px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: clamp(12px, 2vw, 14px);
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--dark-red);
@@ -305,12 +305,12 @@ label {
 
 input[type="text"], input[type="file"] {
     width: 100%;
-    padding: 16px 20px;
+    padding: clamp(12px, 3vw, 16px) clamp(12px, 3vw, 20px);
     margin-top: 8px;
     border: 1px solid #ddd;
     border-radius: 2px;
     font-family: inherit;
-    font-size: 16px;
+    font-size: clamp(14px, 2vw, 16px);
     transition: all 0.3s ease;
     background: var(--light-grey);
 }
@@ -329,18 +329,20 @@ input[type="file"] {
 
 .question-item {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     margin-bottom: 20px;
-    gap: 16px;
+    gap: clamp(8px, 2vw, 16px);
+    flex-wrap: wrap;
 }
 
 .question {
     flex: 1;
-    padding: 14px 18px;
+    min-width: 200px;
+    padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 18px);
     border: 1px solid #ddd;
     border-radius: 2px;
     font-family: inherit;
-    font-size: 15px;
+    font-size: clamp(13px, 2vw, 15px);
     background: var(--light-grey);
     transition: all 0.3s ease;
 }
@@ -451,8 +453,8 @@ button:focus {
 }
 
 #questionText {
-    margin-bottom: 48px;
-    font-size: 32px;
+    margin-bottom: clamp(24px, 5vw, 48px);
+    font-size: clamp(20px, 5vw, 32px);
     text-align: center;
     font-family: 'Playfair Display', serif;
     color: var(--dark-red);
@@ -473,18 +475,20 @@ button:focus {
 .buttons-wrapper {
     position: relative;
     width: 100%;
-    height: 70px;
+    min-height: clamp(60px, 15vw, 70px);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 40px;
+    margin-top: clamp(24px, 5vw, 40px);
+    flex-wrap: wrap;
+    gap: clamp(8px, 2vw, 16px);
 }
 
 .photos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 24px;
-    margin: 50px 0;
+    grid-template-columns: repeat(auto-fit, minmax(clamp(100px, 20vw, 160px), 1fr));
+    gap: clamp(12px, 3vw, 24px);
+    margin: clamp(30px, 5vw, 50px) 0;
     position: relative;
     z-index: 1;
     animation: gridReveal 0.8s ease-out 0.3s backwards;
@@ -592,8 +596,8 @@ button:focus {
 
 /* Preview thumbnails for index upload */
 #photoPreview .preview-thumb {
-    width: 100px;
-    height: 100px;
+    width: clamp(80px, 15vw, 100px);
+    height: clamp(80px, 15vw, 100px);
     object-fit: cover;
     border-radius: 2px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
@@ -608,8 +612,9 @@ button:focus {
 #photoPreview {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: clamp(8px, 2vw, 12px);
     margin: 24px 0;
+    justify-content: flex-start;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -687,31 +692,195 @@ button:focus {
     100% { box-shadow: 0 0 0 rgba(212, 165, 165, 0), 0 8px 24px rgba(162, 62, 72, 0.15); }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 480px) {
+    body {
+        padding: clamp(8px, 3vw, 16px);
+    }
+
     .container {
-        padding: 40px 30px;
+        border-radius: 0;
+    }
+    
+    #questionPage {
+        min-height: auto;
+        padding: 30px 0;
     }
 
-    h1 {
-        font-size: 36px;
-    }
-
-    h2 {
-        font-size: 28px;
-    }
-
-    button {
-        padding: 14px 32px;
-        font-size: 15px;
-    }
-
-    #questionText {
-        font-size: 24px;
-        margin-bottom: 32px;
+    .buttons-wrapper {
+        flex-direction: column;
+        min-height: auto;
+        gap: 12px;
     }
 
     .photos-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+
+    .floating-photo {
+        border-radius: 2px;
+    }
+
+    .photo-item {
+        flex-direction: column;
+    }
+
+    .remove-photo,
+    .remove-question {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: clamp(12px, 4vw, 20px);
+    }
+
+    label {
+        margin-top: 24px;
+    }
+
+    .question-item {
+        gap: 12px;
+    }
+
+    .question {
+        min-width: 150px;
+    }
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 30px 20px;
+    }
+
+    h1 {
+        font-size: 32px;
+    }
+
+    h2 {
+        font-size: 26px;
+    }
+
+    h3 {
+        font-size: 16px;
+        margin-bottom: 24px;
+    }
+
+    p {
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+
+    #questionText {
+        font-size: 22px;
+        margin-bottom: 24px;
+    }
+
+    #questionPage {
+        min-height: 200px;
+        padding: 20px 0;
+    }
+
+    .buttons-wrapper {
+        min-height: 60px;
+        margin-top: 24px;
+    }
+
+    .photos-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin: 24px 0;
+    }
+
+    .remove-photo,
+    .remove-question {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    input[type="text"],
+    input[type="file"] {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+
+    .question-item {
+        flex-direction: column;
+    }
+
+    .question {
+        width: 100%;
+    }
+
+    label {
+        margin-top: 24px;
+        font-size: 12px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .container {
+        max-width: 90%;
+    }
+
+    .photos-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+}
+
+@media (min-width: 1025px) {
+    body {
+        padding: 30px;
+    }
+
+    .container {
+        max-width: 750px;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 600px) and (orientation: landscape) {
+    body {
+        min-height: auto;
+        padding: 10px;
+    }
+
+    .container {
+        padding: 20px 30px;
+    }
+
+    h1 {
+        margin-bottom: 12px;
+    }
+
+    .buttons-wrapper {
+        margin-top: 16px;
+        gap: 8px;
+    }
+
+    .photos-grid {
+        margin: 16px 0;
+        gap: 12px;
+    }
+}
+
+/* High resolution display adjustments */
+@media (min-width: 1440px) {
+    h1 {
+        font-size: 56px;
+    }
+
+    h2 {
+        font-size: 44px;
+    }
+
+    .container {
+        max-width: 800px;
+    }
+
+    .photos-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 32px;
     }
 }

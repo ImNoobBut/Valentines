@@ -91,97 +91,97 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let currentQuestionIndex = 0;
 
-    // Greeting page next
-    document.getElementById('nextToQuestions').addEventListener('click', () => {
-        greetingPage.style.display = 'none';
-        showQuestion();
-    });
+        // Greeting page next button
+        document.getElementById('nextToQuestions').addEventListener('click', () => {
+            greetingPage.style.display = 'none';
+            showQuestion();
+        });
 
-    function showQuestion() {
-        if (currentQuestionIndex < questions.length) {
-            questionText.textContent = questions[currentQuestionIndex];
-            questionPage.style.display = 'block';
-            // Set No button initial position after the question is shown and layout settles
-            requestAnimationFrame(setNoInitialPositionNextToYes);
-        } else {
-            showFinal();
-        }
-    }
-
-    function showFinal() {
-        questionPage.style.display = 'none';
-        finalPage.style.display = 'block';
-        finalMessage.textContent = `I hope you enjoyed this little journey. Will you be my Valentine, ${partnerName}?`;
-    }
-
-    // Yes button
-    yesButton.addEventListener('click', () => {
-        currentQuestionIndex++;
-        showQuestion();
-    });
-
-    // No button - run away
-    function scheduleReturn() {
-        if (noReturnTimer) clearTimeout(noReturnTimer);
-        noReturnTimer = setTimeout(() => {
-            // Return to initial captured position
-            if (initialNoPos) {
-                noButton.style.left = initialNoPos.left + 'px';
-                noButton.style.top = initialNoPos.top + 'px';
-                // Briefly wiggle/flash to draw attention
-                noButton.classList.remove('no-return-effect');
-                // Force reflow to restart the animation if it was recently used
-                // eslint-disable-next-line no-unused-expressions
-                void noButton.offsetWidth;
-                noButton.classList.add('no-return-effect');
-                // Remove effect after animation completes to keep DOM clean
-                setTimeout(() => noButton.classList.remove('no-return-effect'), 700);
+        function showQuestion() {
+            if (currentQuestionIndex < questions.length) {
+                questionText.textContent = questions[currentQuestionIndex];
+                questionPage.style.display = 'block';
+                // Set No button initial position after the question is shown and layout settles
+                requestAnimationFrame(setNoInitialPositionNextToYes);
+            } else {
+                showFinal();
             }
-        }, NO_RETURN_DELAY);
-    }
-
-    function moveNoButton() {
-        const buttonsWrapper = document.querySelector('.buttons-wrapper');
-        if (!buttonsWrapper) return;
-
-        const rect = buttonsWrapper.getBoundingClientRect();
-        const buttonRect = noButton.getBoundingClientRect();
-
-        // Compute random position within buttons-wrapper bounds
-        const maxX = Math.max(0, rect.width - buttonRect.width - 10);
-        const maxY = Math.max(0, rect.height - buttonRect.height - 10);
-        const newX = Math.random() * maxX;
-        const newY = Math.random() * maxY;
-        noButton.style.left = `${newX}px`;
-        noButton.style.top = `${newY}px`;
-
-        // reset and start timer to return to initial position if left unattended
-        scheduleReturn();
-    }
-
-    // Desktop: on mouseover -> run away and restart timer
-    noButton.addEventListener('mouseover', () => {
-        moveNoButton();
-    });
-
-    // Mobile: on click
-    noButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        moveNoButton();
-    });
-
-    // If the user focuses away or interaction ends, ensure timer is running
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') scheduleReturn();
-    });
-
-    // Recalculate default No button position on window resize (if question page visible)
-    window.addEventListener('resize', () => {
-        // Only recalc when question page is visible
-        if (questionPage.style.display !== 'none') {
-            requestAnimationFrame(setNoInitialPositionNextToYes);
         }
-    });
+
+        function showFinal() {
+            questionPage.style.display = 'none';
+            finalPage.style.display = 'block';
+            finalMessage.textContent = `I hope you enjoyed this little journey. Will you be my Valentine, ${partnerName}?`;
+        }
+
+        // Yes button
+        yesButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            showQuestion();
+        });
+
+        // No button - run away
+        function scheduleReturn() {
+            if (noReturnTimer) clearTimeout(noReturnTimer);
+            noReturnTimer = setTimeout(() => {
+                // Return to initial captured position
+                if (initialNoPos) {
+                    noButton.style.left = (10 + initialNoPos.left) + 'px';
+                    noButton.style.top = initialNoPos.top + 'px';
+                    // Briefly wiggle/flash to draw attention
+                    noButton.classList.remove('no-return-effect');
+                    // Force reflow to restart the animation if it was recently used
+                    // eslint-disable-next-line no-unused-expressions
+                    void noButton.offsetWidth;
+                    noButton.classList.add('no-return-effect');
+                    // Remove effect after animation completes to keep DOM clean
+                    setTimeout(() => noButton.classList.remove('no-return-effect'), 700);
+                }
+            }, NO_RETURN_DELAY);
+        }
+
+        function moveNoButton() {
+            // Calculate random X and Y coordinates within the container boundaries
+            const containerRect = container.getBoundingClientRect();
+            const buttonRect = noButton.getBoundingClientRect();
+
+            // Ensure the button stays within the visible area
+            const maxX = Math.max(0, containerRect.width - buttonRect.width);
+            const maxY = Math.max(0, containerRect.height - buttonRect.height);
+
+            const newX = Math.random() * maxX;
+            const newY = Math.random() * maxY;
+
+            // Apply the new position using absolute positioning
+            noButton.style.left = `${newX}px`;
+            noButton.style.top = `${newY}px`;
+
+            // reset and start timer to return to initial position if left unattended
+            scheduleReturn();
+        }
+
+        // Add event listener for when the mouse enters the 'No' button area
+        noButton.addEventListener('mouseenter', moveNoButton);
+        noButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            moveNoButton();
+        });
+
+        // If the user focuses away or interaction ends, ensure timer is running
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') scheduleReturn();
+        });
+
+        // Recalculate default No button position on window resize (if question page visible)
+        window.addEventListener('resize', () => {
+            // Only recalc when question page is visible
+            if (questionPage.style.display !== 'none') {
+                requestAnimationFrame(setNoInitialPositionNextToYes);
+            }
+        });
+
+        // Show greeting page initially
+        greetingPage.style.display = 'block';
     } catch (error) {
         console.error('Error loading invitation:', error);
         document.body.innerHTML = '<h1>Error loading invitation.</h1>';
