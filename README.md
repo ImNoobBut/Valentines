@@ -4,7 +4,7 @@ A beautiful, interactive web application for creating and sharing personalized V
 
 ## ✨ Features
 
-- **Creator Form** — Enter your partner's name, upload up to 2 photos, and add custom yes/no questions
+- **Creator Form** — Enter your partner's name, upload 1 photo, and add custom yes/no questions
 - **Shareable Links** — Generate a unique URL to send your personalized invitation
 - **Interactive Recipient Page** — Recipients see:
   - Personalized greeting with partner name
@@ -130,11 +130,11 @@ Edit font families in the `html` and `body` rules in `styles.css`.
 In `script.js`, adjust compression settings:
 
 ```javascript
-const MAX_DIMENSION = 150;  // Max width/height in pixels (optimized for GitHub Pages)
-const QUALITY = 0.35;       // JPEG quality (0.0-1.0) (ultra-aggressive compression)
+const MAX_DIMENSION = 120;  // Max width/height in pixels (ultra-optimized for GitHub Pages)
+const QUALITY = 0.30;       // JPEG quality (0.0-1.0) (extreme compression)
 ```
 
-**Current defaults**: 150px max, 35% quality, max 2 photos (optimized for GitHub Pages URL limits)
+**Current defaults**: 120px max, 30% quality, 1 photo only (optimized for GitHub Pages strict URL limits of ~2000 characters)
 
 ## 📱 Responsive Breakpoint
 
@@ -202,15 +202,14 @@ docker run -p 8000:8000 valentines
 ## 🐛 Troubleshooting
 
 ### "414 Request-URI Too Long" Error
-**Solution**: The URL got too long (GitHub Pages has strict URL limits). Try:
-- Use exactly 2 photos maximum (no more)
-- Use simple, smaller image files (aim for 500x500px or less before upload)
-- Use photos with minimal detail (solid backgrounds work better)
-- Images are compressed to 150px at 35% quality — this is the minimum for safe URLs
+**Solution**: The URL got too long (GitHub Pages has strict ~2000 character URL limits). Current app:
+- Uses **1 photo maximum** only
+- Compresses to **120px** size at **30% quality** (very low but visible)
+- Include only 2-3 short questions
 
-**Why this happens**: All photo data is embedded in the URL (not stored on a server), so larger/more photos = exponentially longer URLs.
+**Why this happens**: All photo data is embedded in the URL (not stored on a server). Base64 encoding adds 33% overhead. Even 1 small photo creates a ~1500 character URL.
 
-**Best practice for GitHub Pages**: 1-2 small, simple photos work best.
+**Best practice**: Use 1 simple photo with solid background. Keep questions short and few. This is the limit of URL-based photo storage!
 
 ### Photos Not Showing on Recipient Page
 **Solution**: Check browser console (F12) for errors. Ensure:

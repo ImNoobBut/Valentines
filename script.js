@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const invitationLink = document.getElementById('invitationLink');
     const copyLinkBtn = document.getElementById('copyLink');
 
-    const MAX_PHOTOS = 2;
+    const MAX_PHOTOS = 1;
 
     // Compress and convert image to base64
     function compressImage(file) {
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    const maxSize = 150;
+                    const maxSize = 120;
                     let { width, height } = img;
                     if (width > height) {
                         if (width > maxSize) {
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     canvas.width = width;
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.35));
+                    resolve(canvas.toDataURL('image/jpeg', 0.30));
                 };
                 img.src = reader.result;
             };
