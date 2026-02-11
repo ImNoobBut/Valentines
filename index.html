@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Valentine's Invitation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Create Your Valentine's Invitation</h1>
+        <form id="invitationForm">
+            <label for="partnerName">Partner's Name:</label>
+            <input type="text" id="partnerName" required>
+
+            <label for="photo">Upload a Photo:</label>
+            <input type="file" id="photo" accept="image/*" required>
+
+            <div id="questionsContainer">
+                <h3>Questions:</h3>
+                <div class="question-item">
+                    <input type="text" class="question" placeholder="Enter a question" required>
+                    <button type="button" class="remove-question">Remove</button>
+                </div>
+            </div>
+            <button type="button" id="addQuestion">Add Question</button>
+
+            <button type="submit">Generate Invitation Link</button>
+        </form>
+        <div id="linkOutput" style="display: none;">
+            <p>Share this link with your partner:</p>
+            <input type="text" id="invitationLink" readonly>
+            <button id="copyLink">Copy Link</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html></content>
+<parameter name="filePath">e:\Develop\App\Valentines\index.html
