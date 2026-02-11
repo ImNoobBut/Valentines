@@ -2,6 +2,7 @@
 """
 Secure HTTP Server for Valentine's Invitation App
 Handles photo uploads and invitation creation
+Configured for deployment on Render.com
 """
 
 import http.server
@@ -13,7 +14,8 @@ import base64
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-PORT = 8000
+# Get port from environment variable (Render sets this) or default to 8000
+PORT = int(os.getenv('PORT', 8000))
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 UPLOADS_DIR = Path(DIRECTORY) / '.uploads'
 UPLOADS_DIR.mkdir(exist_ok=True)
@@ -208,7 +210,7 @@ class SecureHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 if __name__ == '__main__':
     os.chdir(DIRECTORY)
     handler = SecureHTTPRequestHandler
-    with socketserver.TCPServer(('', PORT), handler) as httpd:
-        print(f'Server running at http://localhost:{PORT}/')
-        print('Press Ctrl+C to stop the server')
+    with socketserver.TCPServer(('0.0.0.0', PORT), handler) as httpd:
+        print(f'Server running on port {PORT}')
+        print('Listening on all interfaces (0.0.0.0)')
         httpd.serve_forever()

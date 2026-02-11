@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: valentines-app
+    env: python
+    plan: free
+    pythonVersion: 3.9
+    startCommand: python server.py
+    envVars:
+      - key: PORT
+        value: 8000

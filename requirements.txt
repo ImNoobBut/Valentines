@@ -1,0 +1,2 @@
+# Python 3.9+ (no external dependencies needed for this app)
+# All libraries used are built-in: http, json, uuid, pathlib, etc.
