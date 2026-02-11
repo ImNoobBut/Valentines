@@ -111,6 +111,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Show loading message
+        const submitBtn = form.querySelector('[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Generating...';
+
         // Compress all photos
         const compressedPhotos = await Promise.all(files.map(compressImage));
 
@@ -119,10 +124,35 @@ document.addEventListener('DOMContentLoaded', () => {
             photos: JSON.stringify(compressedPhotos),
             questions: JSON.stringify(questions)
         });
-        const link = `${window.location.origin}/Valentines/invite.html?${params.toString()}`;
-        invitationLink.value = link;
+        
+        // Full invitation URL
+        const fullLink = `${window.location.origin}${window.location.pathname.replace('index.html', '')}invite.html?${params.toString()}`;
+        
+        // Shorten with TinyURL
+        try {
+            const shortLink = await shortenURL(fullLink);
+            invitationLink.value = shortLink;
+        } catch (error) {
+            console.warn('Could not shorten URL:', error);
+            invitationLink.value = fullLink; // Fallback to full link
+        }
+        
         linkOutput.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Generate Invitation Link';
     });
+
+    // Shorten URL using TinyURL API
+    async function shortenURL(longURL) {
+        try {
+            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longURL)}`);
+            if (!response.ok) throw new Error('Failed to shorten URL');
+            const shortURL = await response.text();
+            return shortURL.trim();
+        } catch (error) {
+            throw error;
+        }
+    }
 
     // Copy link
     copyLinkBtn.addEventListener('click', () => {
