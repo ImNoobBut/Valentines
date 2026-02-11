@@ -145,6 +145,16 @@ button:hover {
     margin-top: 10px;
 }
 
+/* Preview thumbnails for index upload */
+#photoPreview .preview-thumb {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    margin: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .floating-photo-1,
     .floating-photo-2,

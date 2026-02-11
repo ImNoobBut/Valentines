@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('invitationForm');
     const addQuestionBtn = document.getElementById('addQuestion');
-    const addPhotoBtn = document.getElementById('addPhoto');
     const questionsContainer = document.getElementById('questionsContainer');
     const photoContainer = document.getElementById('photoContainer');
     const linkOutput = document.getElementById('linkOutput');
@@ -55,22 +54,27 @@ document.addEventListener('DOMContentLoaded', () => {
         attachRemoveListener(questionItem.querySelector('.remove-question'));
     });
 
-    // Add photo functionality
-    addPhotoBtn.addEventListener('click', () => {
-        const photoItems = photoContainer.querySelectorAll('.photo-item');
-        if (photoItems.length >= MAX_PHOTOS) {
-            alert(`Maximum ${MAX_PHOTOS} photos allowed`);
-            return;
+    const photosInput = document.getElementById('photosInput');
+    const photoPreview = document.getElementById('photoPreview');
+
+    // Handle multi-file selection and preview
+    photosInput.addEventListener('change', () => {
+        photoPreview.innerHTML = '';
+        const files = Array.from(photosInput.files || []).slice(0, MAX_PHOTOS);
+        if (files.length > MAX_PHOTOS) {
+            alert(`Maximum ${MAX_PHOTOS} photos allowed. Extra files will be ignored.`);
         }
-        const photoItem = document.createElement('div');
-        photoItem.className = 'photo-item';
-        photoItem.innerHTML = `
-            <input type="file" class="photo-input" accept="image/*" required>
-            <button type="button" class="remove-photo">Remove</button>
-        `;
-        photoContainer.appendChild(photoItem);
-        attachPhotoRemoveListener(photoItem.querySelector('.remove-photo'));
-        updatePhotoRemoveButtons();
+        files.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = document.createElement('img');
+                img.src = reader.result;
+                img.alt = `Preview ${index + 1}`;
+                img.className = 'preview-thumb';
+                photoPreview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
     });
 
     // Attach remove listener to existing and new remove buttons
@@ -94,25 +98,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.querySelectorAll('.remove-question').forEach(attachRemoveListener);
-    document.querySelectorAll('.remove-photo').forEach(attachPhotoRemoveListener);
-    updatePhotoRemoveButtons();
 
     // Form submit
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const partnerName = document.getElementById('partnerName').value;
-        const photoInputs = Array.from(photoContainer.querySelectorAll('.photo-input'));
+        const files = Array.from(photosInput.files || []).slice(0, MAX_PHOTOS);
         const questions = Array.from(questionsContainer.querySelectorAll('.question')).map(q => q.value).filter(q => q.trim());
 
-        const photoFiles = photoInputs.map(input => input.files[0]).filter(f => f);
-
-        if (photoFiles.length === 0 || questions.length === 0) {
+        if (files.length === 0 || questions.length === 0) {
             alert('Please fill all fields (at least 1 photo and 1 question).');
             return;
         }
 
         // Compress all photos
-        const compressedPhotos = await Promise.all(photoFiles.map(compressImage));
+        const compressedPhotos = await Promise.all(files.map(compressImage));
 
         const params = new URLSearchParams({
             name: partnerName,

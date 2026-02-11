@@ -13,14 +13,9 @@
             <label for="partnerName">Partner's Name:</label>
             <input type="text" id="partnerName" required>
 
-            <label>Upload Photos (up to 4):</label>
-            <div id="photoContainer">
-                <div class="photo-item">
-                    <input type="file" class="photo-input" accept="image/*" required>
-                    <button type="button" class="remove-photo" style="display: none;">Remove</button>
-                </div>
-            </div>
-            <button type="button" id="addPhoto">Add Photo</button>
+            <label for="photosInput">Upload Photos (up to 4):</label>
+            <input type="file" id="photosInput" accept="image/*" multiple required>
+            <div id="photoPreview" class="photos-grid" aria-live="polite"></div>
 
             <div id="questionsContainer">
                 <h3>Questions:</h3>
