@@ -9,46 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const MAX_PHOTOS = 4;
 
-    // Compress and convert image to base64
-    function compressImage(file) {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const maxSize = 300;
-                    let { width, height } = img;
-                    if (width > height) {
-                        if (width > maxSize) {
-                            height = (height * maxSize) / width;
-                            width = maxSize;
-                        }
-                    } else {
-                        if (height > maxSize) {
-                            width = (width * maxSize) / height;
-                            height = maxSize;
-                        }
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.75));
-                };
-                img.src = reader.result;
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-
     // Upload photo to server and return photo ID
-    async function uploadPhotoToServer(photoData) {
+    async function uploadPhotoToServer(file) {
         try {
+            const formData = new FormData();
+            formData.append('photo', file);
+            
             const response = await fetch('/api/upload-photo', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/octet-stream' },
-                body: atob(photoData.split(',')[1]) // Send just the image bytes
+                body: formData
             });
             
             if (!response.ok) throw new Error('Failed to upload photo');
@@ -129,17 +98,48 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Compress all photos
-        const compressedPhotos = await Promise.all(files.map(compressImage));
+        // Show loading message
+        const submitBtn = form.querySelector('[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Generating...';
 
-        const params = new URLSearchParams({
-            name: partnerName,
-            photos: JSON.stringify(compressedPhotos),
-            questions: JSON.stringify(questions)
-        });
-        const link = `${window.location.origin}/Valentines/invite.html?${params.toString()}`;
-        invitationLink.value = link;
-        linkOutput.style.display = 'block';
+        try {
+            // Step 1: Upload photos to server
+            const photoIds = [];
+            for (const file of files) {
+                const photoId = await uploadPhotoToServer(file);
+                photoIds.push(photoId);
+            }
+
+            // Step 2: Create invitation on server
+            const invitationData = {
+                name: partnerName,
+                photoIds: photoIds,
+                questions: questions
+            };
+            
+            const response = await fetch('/api/create-invitation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(invitationData)
+            });
+            
+            if (!response.ok) throw new Error('Failed to create invitation');
+            
+            const result = await response.json();
+            const token = result.token;
+            
+            // Step 3: Create shareable link with token
+            const fullLink = `${window.location.origin}${window.location.pathname.replace('index.html', '')}invite.html?token=${token}`;
+            invitationLink.value = fullLink;
+            linkOutput.style.display = 'block';
+
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Generate Invitation Link';
+        }
     });
 
     // Copy link

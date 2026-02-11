@@ -83,13 +83,22 @@ class SecureHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             content_length = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(content_length)
             
-            # Parse multipart form data or base64-encoded image
-            if b'------' in body:
-                # Multipart form data
-                photo_data = self.extract_multipart_photo(body)
+            # Get the boundary from Content-Type header
+            content_type = self.headers.get('Content-Type', '')
+            boundary = None
+            if 'boundary=' in content_type:
+                boundary = content_type.split('boundary=')[1].split(';')[0].strip('"')
+            
+            # Parse multipart form data
+            if boundary:
+                photo_data = self.extract_multipart_photo(body, boundary)
             else:
-                # Raw base64 image
+                # If no boundary, assume raw data
                 photo_data = body
+            
+            if not photo_data:
+                self.send_error(400, "No photo data found")
+                return
             
             # Generate a unique photo ID
             photo_id = str(uuid.uuid4())[:12]
@@ -109,20 +118,24 @@ class SecureHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self.send_error(400, f"Error uploading photo: {str(e)}")
     
-    def extract_multipart_photo(self, body):
+    def extract_multipart_photo(self, body, boundary):
         """Extract photo data from multipart form data"""
-        # Find the image data between boundaries
-        parts = body.split(b'------')
-        for part in parts:
-            if b'Content-Type: image/' in part:
-                # Extract image data (after headers)
-                try:
-                    data_start = part.find(b'\r\n\r\n') + 4
-                    data_end = part.rfind(b'\r\n')
-                    return part[data_start:data_end]
-                except:
-                    pass
-        return body
+        try:
+            # Split by boundary
+            parts = body.split(f'--{boundary}'.encode())
+            for part in parts:
+                if b'Content-Type: image/' in part:
+                    # Extract image data (after headers and blank line)
+                    data_start = part.find(b'\r\n\r\n')
+                    if data_start != -1:
+                        data_start += 4
+                        # Remove trailing boundary marker
+                        data_end = part.rfind(b'\r\n')
+                        if data_end > data_start:
+                            return part[data_start:data_end]
+            return None
+        except:
+            return None
     
     def handle_create_invitation(self):
         try:
