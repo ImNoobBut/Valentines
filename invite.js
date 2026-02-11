@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         noButton.style.position = 'absolute';
         noButton.style.left = initialNoPos.left + 'px';
         noButton.style.top = initialNoPos.top + 'px';
-        noButton.style.transition = 'left 0.45s ease, top 0.45s ease';
+        noButton.style.transition = 'left 0.2s ease, top 0.2s ease';
     }
 
     partnerNameDisplay.textContent = partnerName;
