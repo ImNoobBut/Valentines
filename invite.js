@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const partnerName = urlParams.get('name');
-    const photoData = urlParams.get('photo');
+    const photosData = JSON.parse(urlParams.get('photos') || '[]');
     const questions = JSON.parse(urlParams.get('questions') || '[]');
 
-    if (!partnerName || !photoData || questions.length === 0) {
+    if (!partnerName || photosData.length === 0 || questions.length === 0) {
         document.body.innerHTML = '<h1>Invalid invitation link.</h1>';
         return;
     }
@@ -16,11 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const questionText = document.getElementById('questionText');
     const yesButton = document.getElementById('yesButton');
     const noButton = document.getElementById('noButton');
-    const hoverPhoto = document.getElementById('hoverPhoto');
+    const photosGrid = document.getElementById('photosGrid');
     const finalMessage = document.getElementById('finalMessage');
 
     partnerNameDisplay.textContent = partnerName;
-    hoverPhoto.src = photoData;
+
+    // Display photos in grid with different animations
+    photosData.forEach((photoData, index) => {
+        const img = document.createElement('img');
+        img.src = photoData;
+        img.alt = `Photo ${index + 1}`;
+        img.className = `floating-photo floating-photo-${index + 1}`;
+        photosGrid.appendChild(img);
+    });
 
     let currentQuestionIndex = 0;
 

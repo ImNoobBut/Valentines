@@ -1,10 +1,47 @@
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('invitationForm');
     const addQuestionBtn = document.getElementById('addQuestion');
+    const addPhotoBtn = document.getElementById('addPhoto');
     const questionsContainer = document.getElementById('questionsContainer');
+    const photoContainer = document.getElementById('photoContainer');
     const linkOutput = document.getElementById('linkOutput');
     const invitationLink = document.getElementById('invitationLink');
     const copyLinkBtn = document.getElementById('copyLink');
+
+    const MAX_PHOTOS = 4;
+
+    // Compress and convert image to base64
+    function compressImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxSize = 300;
+                    let { width, height } = img;
+                    if (width > height) {
+                        if (width > maxSize) {
+                            height = (height * maxSize) / width;
+                            width = maxSize;
+                        }
+                    } else {
+                        if (height > maxSize) {
+                            width = (width * maxSize) / height;
+                            height = maxSize;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.75));
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
     // Add question functionality
     addQuestionBtn.addEventListener('click', () => {
@@ -18,62 +55,73 @@ document.addEventListener('DOMContentLoaded', () => {
         attachRemoveListener(questionItem.querySelector('.remove-question'));
     });
 
+    // Add photo functionality
+    addPhotoBtn.addEventListener('click', () => {
+        const photoItems = photoContainer.querySelectorAll('.photo-item');
+        if (photoItems.length >= MAX_PHOTOS) {
+            alert(`Maximum ${MAX_PHOTOS} photos allowed`);
+            return;
+        }
+        const photoItem = document.createElement('div');
+        photoItem.className = 'photo-item';
+        photoItem.innerHTML = `
+            <input type="file" class="photo-input" accept="image/*" required>
+            <button type="button" class="remove-photo">Remove</button>
+        `;
+        photoContainer.appendChild(photoItem);
+        attachPhotoRemoveListener(photoItem.querySelector('.remove-photo'));
+        updatePhotoRemoveButtons();
+    });
+
     // Attach remove listener to existing and new remove buttons
     function attachRemoveListener(btn) {
         btn.addEventListener('click', (e) => {
             e.target.parentElement.remove();
         });
     }
+    function attachPhotoRemoveListener(btn) {
+        btn.addEventListener('click', (e) => {
+            e.target.parentElement.remove();
+            updatePhotoRemoveButtons();
+        });
+    }
+    function updatePhotoRemoveButtons() {
+        const photoItems = photoContainer.querySelectorAll('.photo-item');
+        photoItems.forEach(item => {
+            const removeBtn = item.querySelector('.remove-photo');
+            removeBtn.style.display = photoItems.length > 1 ? 'block' : 'none';
+        });
+    }
+
     document.querySelectorAll('.remove-question').forEach(attachRemoveListener);
+    document.querySelectorAll('.remove-photo').forEach(attachPhotoRemoveListener);
+    updatePhotoRemoveButtons();
 
     // Form submit
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const partnerName = document.getElementById('partnerName').value;
-        const photoFile = document.getElementById('photo').files[0];
-        const questions = Array.from(document.querySelectorAll('.question')).map(q => q.value).filter(q => q.trim());
+        const photoInputs = Array.from(photoContainer.querySelectorAll('.photo-input'));
+        const questions = Array.from(questionsContainer.querySelectorAll('.question')).map(q => q.value).filter(q => q.trim());
 
-        if (!photoFile || questions.length === 0) {
-            alert('Please fill all fields.');
+        const photoFiles = photoInputs.map(input => input.files[0]).filter(f => f);
+
+        if (photoFiles.length === 0 || questions.length === 0) {
+            alert('Please fill all fields (at least 1 photo and 1 question).');
             return;
         }
 
-        // Convert photo to base64 with compression
-        const reader = new FileReader();
-        reader.onload = () => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const maxSize = 300;
-                let { width, height } = img;
-                if (width > height) {
-                    if (width > maxSize) {
-                        height = (height * maxSize) / width;
-                        width = maxSize;
-                    }
-                } else {
-                    if (height > maxSize) {
-                        width = (width * maxSize) / height;
-                        height = maxSize;
-                    }
-                }
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-                const photoData = canvas.toDataURL('image/jpeg', 0.8);
-                const params = new URLSearchParams({
-                    name: partnerName,
-                    photo: photoData,
-                    questions: JSON.stringify(questions)
-                });
-                const link = `${window.location.origin}/invite.html?${params.toString()}`;
-                invitationLink.value = link;
-                linkOutput.style.display = 'block';
-            };
-            img.src = reader.result;
-        };
-        reader.readAsDataURL(photoFile);
+        // Compress all photos
+        const compressedPhotos = await Promise.all(photoFiles.map(compressImage));
+
+        const params = new URLSearchParams({
+            name: partnerName,
+            photos: JSON.stringify(compressedPhotos),
+            questions: JSON.stringify(questions)
+        });
+        const link = `${window.location.origin}/invite.html?${params.toString()}`;
+        invitationLink.value = link;
+        linkOutput.style.display = 'block';
     });
 
     // Copy link

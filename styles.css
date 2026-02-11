@@ -72,21 +72,84 @@ button:hover {
 
 .page {
     display: block;
+    position: relative;
 }
 
-#hoverPhoto {
-    max-width: 200px;
-    max-height: 200px;
-    animation: float 3s ease-in-out infinite;
+.photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 30px 0;
+    position: relative;
+    z-index: 1;
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+.floating-photo {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    opacity: 0.9;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.floating-photo:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.floating-photo-1 { animation: float1 4s ease-in-out infinite; }
+.floating-photo-2 { animation: float2 4.5s ease-in-out infinite; }
+.floating-photo-3 { animation: float3 5s ease-in-out infinite; }
+.floating-photo-4 { animation: float4 4.2s ease-in-out infinite; }
+
+@keyframes float1 {
+    0%, 100% { transform: translateY(0px) rotate(2deg); }
+    50% { transform: translateY(-15px) rotate(-2deg); }
+}
+
+@keyframes float2 {
+    0%, 100% { transform: translateY(-8px) rotate(-1deg); }
+    50% { transform: translateY(8px) rotate(1deg); }
+}
+
+@keyframes float3 {
+    0%, 100% { transform: translateY(0px) rotate(-2deg); }
+    50% { transform: translateY(-12px) rotate(2deg); }
+}
+
+@keyframes float4 {
+    0%, 100% { transform: translateY(-5px) rotate(1deg); }
+    50% { transform: translateY(10px) rotate(-1deg); }
+}
+
+.photo-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.photo-input {
+    flex: 1;
+}
+
+.remove-photo {
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+#addPhoto {
+    margin-top: 10px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #hoverPhoto {
+    .floating-photo-1,
+    .floating-photo-2,
+    .floating-photo-3,
+    .floating-photo-4 {
         animation: none;
     }
     #noButton {
