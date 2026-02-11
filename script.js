@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
             photos: JSON.stringify(compressedPhotos),
             questions: JSON.stringify(questions)
         });
-        const link = `${window.location.origin}/invite.html?${params.toString()}`;
+        const link = `${window.location.origin}/Valentines/invite.html?${params.toString()}`;
         invitationLink.value = link;
         linkOutput.style.display = 'block';
     });
