@@ -4,7 +4,7 @@ A beautiful, interactive web application for creating and sharing personalized V
 
 ## ✨ Features
 
-- **Creator Form** — Enter your partner's name, upload up to 3 photos, and add custom yes/no questions
+- **Creator Form** — Enter your partner's name, upload up to 2 photos, and add custom yes/no questions
 - **Shareable Links** — Generate a unique URL to send your personalized invitation
 - **Interactive Recipient Page** — Recipients see:
   - Personalized greeting with partner name
@@ -130,11 +130,11 @@ Edit font families in the `html` and `body` rules in `styles.css`.
 In `script.js`, adjust compression settings:
 
 ```javascript
-const MAX_DIMENSION = 200;  // Max width/height in pixels (reduced for URL length)
-const QUALITY = 0.45;       // JPEG quality (0.0-1.0) (aggressive compression)
+const MAX_DIMENSION = 150;  // Max width/height in pixels (optimized for GitHub Pages)
+const QUALITY = 0.35;       // JPEG quality (0.0-1.0) (ultra-aggressive compression)
 ```
 
-**Current defaults**: 200px max, 45% quality, max 3 photos (optimized to avoid "URI Too Long" errors on GitHub Pages)
+**Current defaults**: 150px max, 35% quality, max 2 photos (optimized for GitHub Pages URL limits)
 
 ## 📱 Responsive Breakpoint
 
@@ -202,13 +202,15 @@ docker run -p 8000:8000 valentines
 ## 🐛 Troubleshooting
 
 ### "414 Request-URI Too Long" Error
-**Solution**: The URL got too long (photos exceeded browser/server limits). Try:
-- Use fewer photos (keep to 2-3 max)
-- Use smaller/simpler image files
-- Reduce image resolution before uploading (aim for ~1000x1000px max)
-- Images are automatically compressed to 200px at 45% quality — this is the minimum for URL safety
+**Solution**: The URL got too long (GitHub Pages has strict URL limits). Try:
+- Use exactly 2 photos maximum (no more)
+- Use simple, smaller image files (aim for 500x500px or less before upload)
+- Use photos with minimal detail (solid backgrounds work better)
+- Images are compressed to 150px at 35% quality — this is the minimum for safe URLs
 
-**Note**: This app stores photos in URLs, not on servers. Larger/more photos = longer URLs. Aim for 2 high-quality photos for best results.
+**Why this happens**: All photo data is embedded in the URL (not stored on a server), so larger/more photos = exponentially longer URLs.
+
+**Best practice for GitHub Pages**: 1-2 small, simple photos work best.
 
 ### Photos Not Showing on Recipient Page
 **Solution**: Check browser console (F12) for errors. Ensure:
